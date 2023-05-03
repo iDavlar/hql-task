@@ -1,7 +1,7 @@
 package by.itacademy.hibernate.dao;
 
 
-import by.itacademy.hibernate.Utils.TestDataImporter;
+import by.itacademy.hibernate.utils.TestDataImporter;
 import by.itacademy.hibernate.entity.Payment;
 import by.itacademy.hibernate.entity.User;
 import by.itacademy.hibernate.util.HibernateUtil;
