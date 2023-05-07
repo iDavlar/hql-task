@@ -28,7 +28,6 @@ class UserDaoTest {
     @BeforeAll
     public void initDb() {
         TestDataImporter.importData(sessionFactory);
-        System.out.println();
     }
 
     @AfterAll
