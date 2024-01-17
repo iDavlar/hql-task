@@ -1,16 +1,13 @@
 package by.itacademy.hibernate.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.time.Instant;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "users_chat", schema = "public")
@@ -26,6 +23,15 @@ public class UserChat extends AuditableEntity<Long> {
     @ManyToOne
     @JoinColumn(name = "chat_id")
     private Chat chat;
+
+    public UserChat(Long id, User user, Chat chat) {
+        this.id = id;
+        this.user = user;
+        this.chat = chat;
+    }
+
+    public UserChat() {
+    }
 
     public void setUser(User user) {
         this.user = user;

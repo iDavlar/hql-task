@@ -1,15 +1,11 @@
 package by.itacademy.hibernate.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @Entity
 @Table(schema = "public")
@@ -27,6 +23,16 @@ public class Profile {
     private String street;
 
     private String language;
+
+    public Profile(Long id, User user, String street, String language) {
+        this.id = id;
+        this.user = user;
+        this.street = street;
+        this.language = language;
+    }
+
+    public Profile() {
+    }
 
     public void setUser(User user) {
         user.setProfile(this);

@@ -1,10 +1,8 @@
 package by.itacademy.hibernate.entity;
 
 import by.itacademy.hibernate.convertor.BirthdayConvertor;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -13,8 +11,6 @@ import java.io.Serial;
 import java.io.Serializable;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @Embeddable
 public class PersonalInfo implements Serializable {
@@ -27,4 +23,13 @@ public class PersonalInfo implements Serializable {
     @Convert(converter = BirthdayConvertor.class)
     @Column(name = "birth_date")
     private Birthday birthDate;
+
+    public PersonalInfo(String firstname, String lastname, Birthday birthDate) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.birthDate = birthDate;
+    }
+
+    public PersonalInfo() {
+    }
 }

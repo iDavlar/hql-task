@@ -1,16 +1,15 @@
 package by.itacademy.hibernate.entity;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(of = "name")
 @ToString(exclude = "userChats")
 @Builder
@@ -28,4 +27,13 @@ public class Chat implements BaseEntity<Long> {
     @Builder.Default
     @OneToMany(mappedBy = "chat")
     private List<UserChat> userChats = new ArrayList<>();
+
+    public Chat(Long id, String name, List<UserChat> userChats) {
+        this.id = id;
+        this.name = name;
+        this.userChats = userChats;
+    }
+
+    public Chat() {
+    }
 }

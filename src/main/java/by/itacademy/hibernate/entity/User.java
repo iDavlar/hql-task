@@ -1,14 +1,16 @@
 package by.itacademy.hibernate.entity;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import javax.persistence.*;
-import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(of = "username")
 @ToString(exclude = {"company", "profile", "userChats", "payments"})
 @Builder
@@ -47,6 +49,20 @@ public class User implements Comparable<User>, BaseEntity<Long> {
     @Builder.Default
     @OneToMany(mappedBy = "receiver")
     private List<Payment> payments = new ArrayList<>();
+
+    public User(Long id, PersonalInfo personalInfo, String username, Role role, Company company, Profile profile, List<UserChat> userChats, List<Payment> payments) {
+        this.id = id;
+        this.personalInfo = personalInfo;
+        this.username = username;
+        this.role = role;
+        this.company = company;
+        this.profile = profile;
+        this.userChats = userChats;
+        this.payments = payments;
+    }
+
+    public User() {
+    }
 
     @Override
     public int compareTo(User o) {

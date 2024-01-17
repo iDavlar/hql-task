@@ -1,16 +1,16 @@
 package by.itacademy.hibernate.entity;
 
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(of = "name")
 @ToString(exclude = "users")
 @Builder
@@ -27,6 +27,15 @@ public class Company {
     @Builder.Default
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<User> users = new HashSet<>();
+
+    public Company(Integer id, String name, Set<User> users) {
+        this.id = id;
+        this.name = name;
+        this.users = users;
+    }
+
+    public Company() {
+    }
 
     public void addUser(User user) {
         users.add(user);
