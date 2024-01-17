@@ -1,14 +1,18 @@
 package by.itacademy.hibernate.dao;
 
 
-import by.itacademy.hibernate.entity.Payment;
-import by.itacademy.hibernate.entity.User;
+import by.itacademy.hibernate.entity.*;
+import com.querydsl.jpa.impl.JPAQuery;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 
 import java.util.Collections;
 import java.util.List;
+
+import static by.itacademy.hibernate.entity.QCompany.company;
+import static by.itacademy.hibernate.entity.QPayment.payment;
+import static by.itacademy.hibernate.entity.QUser.user;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserDao {
@@ -19,35 +23,45 @@ public class UserDao {
      * Возвращает всех сотрудников
      */
     public List<User> findAll(Session session) {
-        return session.createQuery("select u from User u", User.class)
-                .list();
+        return new JPAQuery<User>(session)
+                .select(user)
+                .from(user)
+                .fetch();
     }
 
     /**
      * Возвращает всех сотрудников с указанным именем
      */
     public List<User> findAllByFirstName(Session session, String firstName) {
-        return session.createQuery("select u from User u where u.personalInfo.firstname = :firstName", User.class)
-                .setParameter("firstName", firstName)
-                .list();
+        return new JPAQuery<User>(session)
+                .select(user)
+                .from(user)
+                .where(user.personalInfo().firstname.eq(firstName))
+                .fetch();
     }
 
     /**
      * Возвращает первые {limit} сотрудников, упорядоченных по дате рождения (в порядке возрастания)
      */
     public List<User> findLimitedUsersOrderedByBirthday(Session session, int limit) {
-        return session.createQuery("select u from User u order by u.personalInfo.birthDate asc", User.class)
-                .setMaxResults(limit)
-                .list();
+        return new JPAQuery<User>(session)
+                .select(user)
+                .from(user)
+                .orderBy(user.personalInfo().birthDate.asc())
+                .limit(limit)
+                .fetch();
     }
 
     /**
      * Возвращает всех сотрудников компании с указанным названием
      */
     public List<User> findAllByCompanyName(Session session, String companyName) {
-        return session.createQuery("select u from User u where u.company.name = :companyName", User.class)
-                .setParameter("companyName", companyName)
-                .list();
+        return new JPAQuery<User>(session)
+                .select(user)
+                .from(user)
+                .join(user.company())
+                .where(user.company().name.eq(companyName))
+                .fetch();
     }
 
     /**
@@ -55,13 +69,15 @@ public class UserDao {
      * упорядоченные по имени сотрудника, а затем по размеру выплаты
      */
     public List<Payment> findAllPaymentsByCompanyName(Session session, String companyName) {
-        return session.createQuery("""
-                        select p from User u
-                        join u.payments p
-                        where u.company.name = :companyName
-                        """, Payment.class)
-                .setParameter("companyName", companyName)
-                .list();
+        return new JPAQuery<Payment>(session)
+                .select(payment)
+                .from(company)
+                .join(company.users, user)
+                .join(user.payments, payment)
+                .where(company.name.eq(companyName))
+                .orderBy(user.personalInfo().firstname.asc(),
+                        payment.amount.asc())
+                .fetch();
     }
 
     /**
