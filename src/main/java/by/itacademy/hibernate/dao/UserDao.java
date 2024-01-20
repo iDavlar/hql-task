@@ -2,6 +2,7 @@ package by.itacademy.hibernate.dao;
 
 
 import by.itacademy.hibernate.entity.*;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -84,28 +85,28 @@ public class UserDao {
      * Возвращает среднюю зарплату сотрудника с указанными именем и фамилией
      */
     public Double findAveragePaymentAmountByFirstAndLastNames(Session session, String firstName, String lastName) {
-        return session.createQuery("""
-                        select avg(p.amount) from Payment p
-                        where p.receiver.personalInfo.firstname = :firstName
-                        and p.receiver.personalInfo.lastname = :lastName
-                        """, Double.class)
-                .setParameter("firstName", firstName)
-                .setParameter("lastName", lastName)
-                .stream()
-                .findFirst()
-                .orElse(0.0);
+        return new JPAQuery<Double>(session)
+                .select(payment.amount.avg())
+                .from(user)
+                .join(user.payments, payment)
+                .where(user.personalInfo().firstname.eq(firstName),
+                        user.personalInfo().lastname.eq(lastName))
+                .fetchOne();
     }
 
     /**
      * Возвращает для каждой компании: название, среднюю зарплату всех её сотрудников. Компании упорядочены по названию.
      */
-    public List<Object[]> findCompanyNamesWithAvgUserPaymentsOrderedByCompanyName(Session session) {
-        return session.createQuery("""
-                        select p.receiver.company.name AS compName, avg(p.amount) from Payment p
-                        group by compName
-                        order by compName asc
-                        """, Object[].class)
-                .list();
+    public List<Tuple> findCompanyNamesWithAvgUserPaymentsOrderedByCompanyName(Session session) {
+        return new JPAQuery<Tuple>(session)
+                .select(company.name,
+                        payment.amount.avg())
+                .from(company)
+                .join(company.users, user)
+                .join(user.payments, payment)
+                .groupBy(company.name)
+                .orderBy(company.name.asc())
+                .fetch();
     }
 
     /**
@@ -113,14 +114,21 @@ public class UserDao {
      * больше среднего размера выплат всех сотрудников
      * Упорядочить по имени сотрудника
      */
-    public List<Object[]> isItPossible(Session session) {
-        return session.createQuery("""
-                        select r, avg(p.amount) from Payment p
-                        join p.receiver r
-                        group by r
-                        having avg(p.amount) >= (select avg(p.amount) from Payment p)
-                        """, Object[].class)
-                .list();
+    public List<Tuple> isItPossible(Session session) {
+        return new JPAQuery<Tuple>(session)
+                .select(user,
+                        payment.amount.avg())
+                .from(user)
+                .join(user.payments, payment)
+                .having(payment.amount.avg().gt(
+                                new JPAQuery<Double>(session)
+                                        .select(payment.amount.avg())
+                                        .from(payment)
+                        )
+                )
+                .groupBy(user.id)
+                .orderBy(user.personalInfo().firstname.asc())
+                .fetch();
     }
 
     public static UserDao getInstance() {
