@@ -14,6 +14,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -147,6 +150,50 @@ class UserDaoTest {
 
         List<Double> averagePayments = results.stream().map(r -> r.get(1, Double.class)).collect(toList());
         assertThat(averagePayments).contains(500.0, 450.0);
+
+        session.getTransaction().commit();
+    }
+
+    @Test
+    void findAveragePaymentAmountByBirthDate() {
+        @Cleanup Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<Tuple> results = userDao.findAveragePaymentAmountByBirthDate(session);
+        assertThat(results).hasSize(3);
+
+        List<Integer> years = results.stream()
+                .map(r -> r.get(0, Integer.class))
+                .collect(toList());
+        assertThat(years).contains(1955, 1960, 1973);
+
+        List<Double> averagePayments = results.stream().map(r -> r.get(1, Double.class)).collect(toList());
+        assertThat(averagePayments).contains(350.0, 350.0, 500.0);
+
+        session.getTransaction().commit();
+    }
+
+    @Test
+    void findSumPaymentsAmountByFirstName() {
+        @Cleanup Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Integer result = userDao.findSumPaymentsAmountByFirstName(session, "Steve");
+        assertThat(result).isEqualTo(1350);
+
+        session.getTransaction().commit();
+    }
+
+    @Test
+    void findUsersByPaymentsMoreThan() {
+        @Cleanup Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<User> users = userDao.findUsersByPaymentsMoreThan(session, 300);
+        assertThat(users).hasSize(4);
+
+        List<String> names = users.stream().map(User::fullName).collect(toList());
+        assertThat(names).contains("Bill Gates", "Steve Jobs", "Sergey Brin", "Tim Cook");
 
         session.getTransaction().commit();
     }

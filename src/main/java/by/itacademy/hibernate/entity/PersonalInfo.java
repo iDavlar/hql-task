@@ -4,9 +4,7 @@ import by.itacademy.hibernate.convertor.BirthdayConvertor;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Embeddable;
+import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 

@@ -3,11 +3,16 @@ package by.itacademy.hibernate.dao;
 
 import by.itacademy.hibernate.entity.*;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Ops;
+import com.querydsl.core.types.dsl.DateOperation;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 
+import java.time.LocalDate;
+import java.time.Year;
 import java.util.Collections;
 import java.util.List;
 
@@ -130,6 +135,51 @@ public class UserDao {
                 .orderBy(user.personalInfo().firstname.asc())
                 .fetch();
     }
+
+    /**
+     * Средние выплаты по возврастам сотрудников
+     */
+    public List<Tuple> findAveragePaymentAmountByBirthDate(Session session) {
+        DateOperation<LocalDate> birthDateToYear = Expressions.dateOperation(
+                LocalDate.class,
+                Ops.DateTimeOps.DATE,
+                user.personalInfo().birthDate
+        );
+        return new JPAQuery<Tuple>(session)
+                .select(birthDateToYear.year(),
+                        payment.amount.avg())
+                .from(user)
+                .join(user.payments, payment)
+                .groupBy(birthDateToYear.year())
+                .orderBy(birthDateToYear.year().asc())
+                .fetch();
+    }
+
+    /**
+     * Сумма всех выплат по имени сотрудника
+     */
+    public Integer findSumPaymentsAmountByFirstName(Session session, String firstName) {
+        return new JPAQuery<Integer>(session)
+                .select(payment.amount.sum())
+                .from(user)
+                .join(user.payments, payment)
+                .where(user.personalInfo().firstname.eq(firstName))
+                .fetchOne();
+    }
+
+    /**
+     * Всех сотрудников, у которых есть хотя бы 1 выплата больше Х
+     */
+    public List<User> findUsersByPaymentsMoreThan(Session session, Integer minPaymentAmount) {
+        return new JPAQuery<User>(session)
+                .select(user)
+                .from(payment)
+                .join(payment.receiver(), user)
+                .where(payment.amount.gt(minPaymentAmount))
+                .groupBy(user)
+                .fetch();
+    }
+
 
     public static UserDao getInstance() {
         return INSTANCE;
