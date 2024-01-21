@@ -1,6 +1,7 @@
 package by.itacademy.hibernate.dao;
 
 
+import by.itacademy.hibernate.entity.Company;
 import by.itacademy.hibernate.utils.TestDataImporter;
 import by.itacademy.hibernate.entity.Payment;
 import by.itacademy.hibernate.entity.User;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -185,15 +187,50 @@ class UserDaoTest {
     }
 
     @Test
-    void findUsersByPaymentsMoreThan() {
+    void findUsersByPaymentAmountMoreThan() {
         @Cleanup Session session = sessionFactory.openSession();
         session.beginTransaction();
 
-        List<User> users = userDao.findUsersByPaymentsMoreThan(session, 300);
+        List<User> users = userDao.findUsersByPaymentAmountMoreThan(session, 300);
         assertThat(users).hasSize(4);
 
         List<String> names = users.stream().map(User::fullName).collect(toList());
         assertThat(names).contains("Bill Gates", "Steve Jobs", "Sergey Brin", "Tim Cook");
+
+        session.getTransaction().commit();
+    }
+
+    @Test
+    void findUsersByPaymentCountMoreThan() {
+        @Cleanup Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<User> users = userDao.findUsersByPaymentCountMoreThan(session, 2);
+        assertThat(users).hasSize(4);
+
+        List<String> names = users.stream().map(User::fullName).collect(toList());
+        assertThat(names).contains("Bill Gates", "Steve Jobs", "Sergey Brin", "Diane Greene");
+
+        session.getTransaction().commit();
+    }
+
+    @Test
+    void findSumCompaniesPayments() {
+        @Cleanup Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        List<Tuple> results = userDao.findSumCompaniesPayments(session);
+        assertThat(results).hasSize(3);
+
+        List<String> companyNames = results.stream()
+                .map(t -> t.get(0, Company.class).getName())
+                .toList();
+        assertThat(companyNames).contains("Microsoft", "Apple", "Google");
+
+        List<Integer> paymentAmount = results.stream()
+                .map(t -> t.get(1, Integer.class))
+                .collect(toList());
+        assertThat(paymentAmount).contains(2400, 2050, 900);
 
         session.getTransaction().commit();
     }

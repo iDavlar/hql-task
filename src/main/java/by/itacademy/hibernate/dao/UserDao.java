@@ -170,7 +170,7 @@ public class UserDao {
     /**
      * Всех сотрудников, у которых есть хотя бы 1 выплата больше Х
      */
-    public List<User> findUsersByPaymentsMoreThan(Session session, Integer minPaymentAmount) {
+    public List<User> findUsersByPaymentAmountMoreThan(Session session, Integer minPaymentAmount) {
         return new JPAQuery<User>(session)
                 .select(user)
                 .from(payment)
@@ -180,6 +180,32 @@ public class UserDao {
                 .fetch();
     }
 
+    /**
+     * Всех сотрудников, у которых кол-во выплат больше Х
+     */
+    public List<User> findUsersByPaymentCountMoreThan(Session session, Integer minPaymentCount) {
+        return new JPAQuery<User>(session)
+                .select(user)
+                .from(payment)
+                .join(payment.receiver(), user)
+                .having(payment.count().gt(minPaymentCount))
+                .groupBy(user)
+                .fetch();
+    }
+
+    /**
+     * Сумма всех выплат по компаниям
+     */
+    public List<Tuple> findSumCompaniesPayments(Session session) {
+        return new JPAQuery<Tuple>(session)
+                .select(company,
+                        payment.amount.sum())
+                .from(company)
+                .join(company.users, user)
+                .join(user.payments, payment)
+                .groupBy(company)
+                .fetch();
+    }
 
     public static UserDao getInstance() {
         return INSTANCE;
